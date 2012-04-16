@@ -1,5 +1,19 @@
+require 'capybara'
+require 'capybara/dsl'
+
 module ActivePage
   class Page
+    def self.run_server=(value)
+      Capybara.run_server = value
+    end
+
+    def self.default_driver=(value)
+      Capybara.default_driver = value
+    end
+
+    def self.app_host=(value)
+      Capybara.app_host = value
+    end
 
     def self.validates_path(path)
       send :define_method, :path do
