@@ -77,6 +77,14 @@ module ActivePage
       session.has_selector? selector.to_s
     end
 
+    def has_content?(content)
+      session.has_content? content
+    end
+
+    def has_xpath?(the_xpath)
+      session.has_xpath? the_xpath
+    end
+
     #=====================
     # ASSERTIONS
     #=====================
