@@ -54,7 +54,11 @@ module ActivePage
     end
 
     def find(selector)
-      session.find("#{ selector }")
+      session.find(selector)
+    end
+
+    def find_by_xpath(the_xpath)
+      session.find(:xpath, the_xpath)
     end
 
     #=====================
