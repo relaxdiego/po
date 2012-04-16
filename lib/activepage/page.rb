@@ -53,6 +53,10 @@ module ActivePage
       session.find("#{ submit_button_or_link_selector }").click
     end
 
+    def find(selector)
+      session.find("#{ selector }")
+    end
+
     #=====================
     # QUERIES
     #=====================
