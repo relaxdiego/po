@@ -11,6 +11,10 @@ module ActivePage
       Capybara.default_driver = value
     end
 
+    def self.current_driver=(value)
+      Capybara.current_driver = value
+    end
+
     def self.app_host=(value)
       Capybara.app_host = value
     end
