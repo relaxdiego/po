@@ -4,21 +4,30 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = "activepage"
+  s.name = "po"
   s.version = "0.0.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Mark Maglana"]
-  s.date = "2012-04-15"
+  s.date = "2012-04-18"
   s.description = "Ruby implementation of the Page Object pattern"
   s.email = "mmaglana@gmail.com"
   s.extra_rdoc_files = [
     "LICENSE.txt"
   ]
-  s.homepage = "http://github.com/activepage/activepage"
+  s.files = [
+    ".document",
+    ".rvmrc",
+    "Gemfile",
+    "Gemfile.lock",
+    "LICENSE.txt",
+    "Rakefile",
+    "VERSION"
+  ]
+  s.homepage = "http://github.com/relaxdiego/po"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.19"
+  s.rubygems_version = "1.8.22"
   s.summary = "Ruby implementation of the Page Object pattern"
 
   if s.respond_to? :specification_version then

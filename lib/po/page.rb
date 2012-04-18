@@ -1,7 +1,7 @@
 require 'capybara'
 require 'capybara/dsl'
 
-module ActivePage
+module PO
 
   class Page
 
