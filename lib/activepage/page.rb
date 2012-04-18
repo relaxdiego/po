@@ -99,12 +99,12 @@ module ActivePage
 
     def should_be_valid
       unless is_valid?
-        missing = missing_html_elements
+        missing = missing_selectors
 
         error = "Expected #{ self.url } but another page was returned."
-        error << " URL: #{ session.current_url }." if session.current_url != self.url
+        error << " URL: #{ session.current_url }." unless is_current?
         error << " Missing HTML ID#{ missing.length > 1 ? 's' : '' }: " +
-                 "#{ missing.join(', ') }" if missing.length > 0
+                 "#{ missing.join(', ') }" unless missing.length == 0
 
         raise PageAssertionError, error
       end
