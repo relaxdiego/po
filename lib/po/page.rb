@@ -21,7 +21,7 @@ module PO
 
     def self.validates_selector(selector)
       selector = selector.to_s
-      send :define_method, "active_page_validate_#{ selector.gsub(/\W/, '_') }" do
+      send :define_method, "validate_#{ selector.gsub(/\W/, '_') }" do
         return has_css_selector?(selector), selector
       end
     end
@@ -135,7 +135,7 @@ module PO
 
     def missing_selectors
       missing = []
-      methods.select{ |m| m.to_s =~ /^active_page_validate_.+$/ }.each do |method_name|
+      methods.select{ |m| m.to_s =~ /^validate_.+$/ }.each do |method_name|
         not_missing, selector = send(method_name)
         missing << selector unless not_missing
       end
