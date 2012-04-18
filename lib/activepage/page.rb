@@ -5,6 +5,10 @@ module ActivePage
 
   class Page
 
+    #=====================
+    # CLASS METHODS
+    #=====================
+
     def self.validates_path(path)
       send :define_method, :path do
         path
@@ -137,6 +141,10 @@ module ActivePage
       end
       missing
     end
+
+    #=====================
+    # PRIVATE METHODS
+    #=====================
 
     private
 
