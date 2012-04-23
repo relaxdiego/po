@@ -5,6 +5,8 @@ module PO
 
   class Page
 
+    ELEMENT_TYPES = 'button|field|link|checkbox|dropdown'
+
     #=====================
     # CLASS METHODS
     #=====================
@@ -16,30 +18,34 @@ module PO
     end
 
     def self.method_missing(name, *args, &block)
-      if name =~ /_(button|field)$/
-        register_element name, args[0]
+      element =  /^(?<name>.+)_(?<type>#{ ELEMENT_TYPES })$/.match(name)
+      if element
+        register_element element['name'], element['type'], args[0]
       else
         super name, args, block
       end
     end
 
-    def self.register_element(name, locator)
+    def self.register_element(name, type, locator)
+      # puts "locator is a #{ locator.class } #{ locator.inspect }"
       if locator.class == Hash && locator.has_key?(:xpath)
-        send :define_method, name do
-          find_by_xpath locator
+        send :define_method, "#{ name }_#{ type }" do
+          find_by_xpath locator[:xpath]
         end
 
-        send :define_method, "has_#{ name }?" do
-          has_xpath? locator
+        send :define_method, "has_#{ name }_#{ type }?" do
+          has_xpath? locator[:xpath]
         end
-      else
-        send :define_method, name do
+      elsif locator.class == String
+        send :define_method, "#{ name }_#{ type }" do
           find locator
         end
 
-        send :define_method, "has_#{ name }?" do
+        send :define_method, "has_#{ name }_#{ type }?" do
           has_css_selector? locator
         end
+      else
+        raise "Invalid element locator #{ locator.inspect }"
       end
     end
 
