@@ -9,31 +9,41 @@ module PO
     # CLASS METHODS
     #=====================
 
-    def self.validates_path(path)
+    def self.path(path)
       send :define_method, :path do
         path
       end
+    end
 
-      send :define_method, :validate_path do
-        session.current_path == self.path
+    def self.method_missing(name, *args, &block)
+      if name =~ /_(button|field)$/
+        register_element name, args[0]
+      else
+        super name, args, block
       end
     end
 
-    def self.validates_selector(selector)
-      selector = selector.to_s
-      send :define_method, "validate_#{ selector.gsub(/\W/, '_') }" do
-        return has_css_selector?(selector), selector
-      end
-    end
+    def self.register_element(name, locator)
+      if locator.class == Hash && locator.has_key?(:xpath)
+        send :define_method, name do
+          find_by_xpath locator
+        end
 
-    def self.submit_button_or_link_selector(selector)
-      send :define_method, :submit_button_or_link_selector do
-        selector
+        send :define_method, "has_#{ name }?" do
+          has_xpath? locator
+        end
+      else
+        send :define_method, name do
+          find locator
+        end
+
+        send :define_method, "has_#{ name }?" do
+          has_css_selector? locator
+        end
       end
     end
 
     attr_reader :path
-    submit_button_or_link_selector '#submit'
 
     def initialize
       @session = Capybara.current_session
@@ -45,20 +55,6 @@ module PO
 
     def visit
       session.visit path
-    end
-
-    def fill_in(field_id, value)
-      unless session.has_selector? "##{ field_id.to_s }"
-        raise PageAssertionError, "#{ self.class }: Can't find any field with id='#{ field_id }'"
-      end
-      session.fill_in field_id.to_s, :with => value
-    end
-
-    def submit
-      unless session.has_selector? "#{ submit_button_or_link_selector }"
-        raise PageAssertionError, "#{ self.class }: Can't find a submit button with css selector '#{ submit_button_or_link_selector }'"
-      end
-      session.find("#{ submit_button_or_link_selector }").click
     end
 
     def find(selector)
@@ -73,12 +69,12 @@ module PO
     # QUERIES
     #=====================
 
-    def is_current?
-      session.current_path == self.path
+    def has_expected_path?
+      expected_path == actual_path
     end
 
-    def is_valid?
-      is_current? && missing_selectors.length == 0
+    def has_expected_url?
+      expected_url == actual_url
     end
 
     def has_css_selector?(selector)
@@ -94,52 +90,42 @@ module PO
     end
 
     #=====================
-    # ASSERTIONS
-    #=====================
-
-    def should_be_valid
-      unless is_valid?
-        missing = missing_selectors
-
-        error = "Expected #{ self.url } but another page was returned."
-        error << " URL: #{ session.current_url }." unless is_current?
-        error << " Missing HTML ID#{ missing.length > 1 ? 's' : '' }: " +
-                 "#{ missing.join(', ') }" unless missing.length == 0
-
-        raise PageAssertionError, error
-      end
-    end
-
-    def should_be_current
-      raise PageAssertionError, "Expected to be redirected to #{ url } but " +
-        "was redirected to #{ session.current_url }." unless is_current?
-    end
-
-    def should_not_be_current
-      raise PageAssertionError, "Expected to NOT be redirected to #{ url }." if is_current?
-    end
-
-    def should_have_content(content)
-      unless session.has_content?(content)
-        raise PageAssertionError, "#{ self.class } does not contain the content '#{ content }'"
-      end
-    end
-
-    #=====================
     # OTHERS
     #=====================
 
-    def url
-      "#{ session.current_host }#{ path }"
+    def expected_path
+      path
     end
 
-    def missing_selectors
-      missing = []
-      methods.select{ |m| m.to_s =~ /^validate_.+$/ }.each do |method_name|
-        not_missing, selector = send(method_name)
-        missing << selector unless not_missing
+    def actual_path
+      session.current_path
+    end
+
+    def expected_url
+      "#{ session.current_host }#{ expected_path }"
+    end
+
+    def actual_url
+      "#{ session.current_host }#{ actual_path }"
+    end
+
+    #=====================
+    # METHOD MISSING
+    #=====================
+
+    def method_missing(name, *args, &block)
+      element_method_call = /^(has_)?(?<name>.+)_(?<type>button|field)\??$/.match(name)
+      if element_method_call
+        raise_missing_element_declaration_error(element_method_call['name'], element_method_call['type'])
+      else
+        super name, args, block
       end
-      missing
+    end
+
+    def raise_missing_element_declaration_error(element_name, element_type)
+      raise "I don't know how to find #{ element_name }. " +
+            "Make sure you define it by adding '#{ element_name }_#{ element_type } " +
+            "<css_selector>' in #{ self.class }"
     end
 
     #=====================
