@@ -114,16 +114,24 @@ module PO
     #=====================
 
     def method_missing(name, *args, &block)
-      element_method_call = /^(has_)?(?<name>.+)_(?<type>button|field)\??$/.match(name)
-      if element_method_call
-        raise_missing_element_declaration_error(element_method_call['name'], element_method_call['type'])
+      element_query  = /^has_(?<name>.+)_(?<type>#{ ELEMENT_TYPES })\??$/.match(name)
+      element_find   = /^(?<name>.+)_(?<type>#{ ELEMENT_TYPES })$/.match(name)
+      element_action = /^(?<action>click|fill_in|select|check)_(?<name>.+)_(?<type>#{ ELEMENT_TYPES })/.match(name)
+
+      if element_action
+        raise "Undefined method '#{ element_action[0] }'. Maybe you mean " +
+              "#{ self.class }##{ element_action['name'] }_#{ element_action['type'] }.#{ element_action['action'] }?"
+      elsif element_query
+        raise_missing_element_declaration_error(element_query['name'], element_query['type'])
+      elsif element_find
+        raise_missing_element_declaration_error(element_find['name'], element_find['type'])
       else
         super name, args, block
       end
     end
 
     def raise_missing_element_declaration_error(element_name, element_type)
-      raise "I don't know how to find #{ element_name }. " +
+      raise "I don't know how to find the #{ element_name } #{ element_type }. " +
             "Make sure you define it by adding '#{ element_name }_#{ element_type } " +
             "<css_selector>' in #{ self.class }"
     end
