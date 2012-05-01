@@ -5,7 +5,7 @@ module PO
 
   class Page
 
-    ELEMENT_TYPES = 'button|field|link|checkbox|dropdown'
+    ELEMENT_TYPES = 'button|field|link|checkbox|dropdown|form'
 
     #=====================
     # CLASS METHODS
@@ -27,7 +27,6 @@ module PO
     end
 
     def self.register_element(name, type, locator)
-      # puts "locator is a #{ locator.class } #{ locator.inspect }"
       if locator.class == Hash && locator.has_key?(:xpath)
         send :define_method, "#{ name }_#{ type }" do
           find_by_xpath locator[:xpath]
