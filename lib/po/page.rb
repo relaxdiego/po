@@ -28,19 +28,25 @@ module PO
 
     def self.register_element(name, type, locator)
       if locator.class == Hash && locator.has_key?(:xpath)
-        send :define_method, "#{ name }_#{ type }" do
-          find_by_xpath locator[:xpath]
+        send :define_method, "#{ name }_#{ type }" do |vars = {}|
+          locator = locator[:xpath]
+          vars.each { |k, v| locator.gsub!("<#{ k }>", v) }
+          find_by_xpath locator
         end
 
-        send :define_method, "has_#{ name }_#{ type }?" do
-          has_xpath? locator[:xpath]
+        send :define_method, "has_#{ name }_#{ type }?" do |vars = {}|
+          locator = locator[:xpath]
+          vars.each { |k, v| locator.gsub!("<#{ k }>", v) }
+          has_xpath? locator
         end
-      elsif locator.class == String
-        send :define_method, "#{ name }_#{ type }" do
+      elsif locator.class == String || (locator.class == Hash && locator.has_key?(:css))
+        send :define_method, "#{ name }_#{ type }" do |vars = {}|
+          vars.each { |k, v| locator.gsub!("<#{ k }>", v) }
           find locator
         end
 
-        send :define_method, "has_#{ name }_#{ type }?" do
+        send :define_method, "has_#{ name }_#{ type }?" do |vars = {}|
+          vars.each { |k, v| locator.gsub!("<#{ k }>", v) }
           has_css_selector? locator
         end
       else
