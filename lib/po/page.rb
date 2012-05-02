@@ -5,7 +5,8 @@ module PO
 
   class Page
 
-    ELEMENT_TYPES = 'button|field|link|checkbox|dropdown|form'
+    ELEMENT_TYPES = 'button|field|link|checkbox|form'
+    LIST_TYPES    = 'list|dropdown'
 
     #=====================
     # CLASS METHODS
@@ -18,9 +19,13 @@ module PO
     end
 
     def self.method_missing(name, *args, &block)
-      element =  /^(?<name>.+)_(?<type>#{ ELEMENT_TYPES })$/.match(name)
+      element = /^(?<name>.+)_(?<type>#{ ELEMENT_TYPES })$/.match(name)
+      list    = /^(?<name>.+)_(?<type>#{ LIST_TYPES })$/.match(name)
+
       if element
         register_element element['name'], element['type'], args[0]
+      elsif list
+        register_list list['name'], list['type'], args[0]
       else
         super name, args, block
       end
@@ -51,6 +56,24 @@ module PO
         end
       else
         raise "Invalid element locator #{ locator.inspect }"
+      end
+    end
+
+    def self.register_list(name, type, items_locator)
+      if items_locator.class == Hash && items_locator.has_key?(:xpath)
+        send :define_method, "#{ name }_#{ type }" do
+          session.all :xpath, items_locator[:xpath]
+        end
+      elsif items_locator.class == String
+        send :define_method, "#{ name }_#{ type }" do
+          session.all :css, items_locator
+        end
+      else
+        raise "Invalid list item locator #{ items_locator.inspect }"
+      end
+
+      send :define_method, "has_#{ name }_#{ type }?" do
+        send("#{ name }_#{ type }").count > 0
       end
     end
 
@@ -156,5 +179,7 @@ module PO
     def session
       @session
     end
+
   end
+
 end
